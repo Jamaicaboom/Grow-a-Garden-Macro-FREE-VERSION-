@@ -47,10 +47,10 @@ webhook_url = ""
 
 # Shop timer management (all start ready)
 shop_timers = {
-    "Seeds": {"time_left": 0, "total_time": 3600, "last_visited": None},     # 1 hour
-    "Gears": {"time_left": 0, "total_time": 7200, "last_visited": None},     # 2 hours  
-    "Eggs": {"time_left": 0, "total_time": 1800, "last_visited": None},      # 30 minutes
-    "Cosmetics": {"time_left": 0, "total_time": 14400, "last_visited": None} # 4 hours
+    "Seeds": {"time_left": 0, "total_time": 3600, "last_visited": None},     # 1 hour (3600 seconds)
+    "Gears": {"time_left": 0, "total_time": 300, "last_visited": None},      # 5 minutes (300 seconds)  
+    "Eggs": {"time_left": 0, "total_time": 1800, "last_visited": None},      # 30 minutes (1800 seconds)
+    "Cosmetics": {"time_left": 0, "total_time": 14400, "last_visited": None} # 4 hours (14400 seconds)
 }
 
 # Item indexes in shops (order matters for navigation)
@@ -112,10 +112,18 @@ def update_shop_timer(shop_name, duration):
     shop_timers[shop_name]["last_visited"] = datetime.now()
 
 def check_shop_timers():
-    """Update all shop timers based on elapsed time"""
+    """Update all shop timers based on elapsed time and try to detect from UI"""
     current_time = datetime.now()
     for shop_name, timer_data in shop_timers.items():
-        if timer_data["last_visited"]:
+        # Try to detect actual time from game UI first
+        detected_time = detect_shop_restock_time(shop_name)
+        
+        if detected_time is not None:
+            # Use detected time from game UI
+            timer_data["time_left"] = detected_time
+            print(f"🎯 Detected {shop_name} timer: {detected_time}s from game UI")
+        elif timer_data["last_visited"]:
+            # Fall back to calculated time
             elapsed = (current_time - timer_data["last_visited"]).total_seconds()
             timer_data["time_left"] = max(0, timer_data["total_time"] - elapsed)
 
@@ -171,23 +179,30 @@ def toggle_ui_navigation():
     return True
 
 def navigate_ui_right(steps=1):
-    """Navigate UI to the right"""
+    """Navigate UI to the right using D key"""
     print(f"➡️ Moving UI right ({steps} steps)")
-    safe_press('right', steps)
+    safe_press('d', steps)
     safe_wait(0.2)
     return True
 
 def navigate_ui_down(steps=1):
-    """Navigate UI down"""
+    """Navigate UI down using S key"""
     print(f"⬇️ Moving UI down ({steps} steps)")
-    safe_press('down', steps)
+    safe_press('s', steps)
     safe_wait(0.2)
     return True
 
 def navigate_ui_up(steps=1):
-    """Navigate UI up"""
+    """Navigate UI up using W key"""
     print(f"⬆️ Moving UI up ({steps} steps)")
-    safe_press('up', steps)
+    safe_press('w', steps)
+    safe_wait(0.2)
+    return True
+
+def navigate_ui_left(steps=1):
+    """Navigate UI to the left using A key"""
+    print(f"⬅️ Moving UI left ({steps} steps)")
+    safe_press('a', steps)
     safe_wait(0.2)
     return True
 
@@ -237,21 +252,30 @@ def close_shop():
     
     # Close UI navigation
     toggle_ui_navigation()
-    safe_wait(0.3)
+    safe_wait(0.5)
     
     # Open UI navigation again
     toggle_ui_navigation()
-    safe_wait(0.3)
+    safe_wait(0.5)
     
-    # Move 4 to the right
-    navigate_ui_right(4)
+    # Navigate to inventory/backpack - Move right 4 times using D key
+    print("🧭 Moving to inventory...")
+    for i in range(4):
+        print(f"  Step {i+1}: Moving right")
+        navigate_ui_right(1)
+        safe_wait(0.2)
     
-    # Move 1 down
+    # Move down 1 using S key
+    print("🧭 Moving down to backpack")
     navigate_ui_down(1)
+    safe_wait(0.2)
     
-    # Move 1 to the right
+    # Move right 1 more using D key
+    print("🧭 Final movement to backpack")
     navigate_ui_right(1)
+    safe_wait(0.2)
     
+    print("✅ Ready to access inventory")
     safe_wait(0.5)
     return True
 
@@ -276,16 +300,22 @@ def navigate_to_seed_shop():
     
     # Open UI navigation
     toggle_ui_navigation()
-    safe_wait(0.3)
+    safe_wait(0.5)
     
-    # Move 3 to the right
-    navigate_ui_right(3)
+    # Navigate to Seeds button - Move right 3 times using D key
+    print("🧭 Moving to Seeds button...")
+    for i in range(3):
+        print(f"  Step {i+1}: Moving right")
+        navigate_ui_right(1)
+        safe_wait(0.3)
     
     # Press enter to select seeds
+    print("✅ Selecting Seeds")
     press_enter()
     safe_wait(1.0)
     
     # Press E to interact with NPC
+    print("🤝 Talking to Seeds NPC")
     press_e()
     safe_wait(1.0)
     
@@ -306,37 +336,44 @@ def buy_seeds(seeds_to_buy):
             
         print(f"🔍 Looking for {seed_name}")
         
-        # Find the seed by scrolling down through the shop
+        # Find the seed by scrolling down through the shop using S key
         seed_found = False
-        max_scrolls = 30  # Prevent infinite loop
+        max_scrolls = len(SEED_ITEMS) + 5  # Search through all seeds plus buffer
         
         for scroll_attempt in range(max_scrolls):
             if not macro_running:
                 break
                 
-            # Try to find and buy the seed
-            # Since we can't read text directly, we'll try to buy at each position
-            # This is a simplified approach - in reality you'd need OCR or pattern matching
+            print(f"  🔍 Checking item position {scroll_attempt + 1}")
             
-            # Press enter to try to buy current item
+            # Press enter to try to select/buy current item
             press_enter()
             safe_wait(0.3)
             
-            # Move down one to spam enter (buy multiple)
+            # Move down one using S key to access buy button/quantity
+            print(f"  ⬇️ Moving to buy option")
             navigate_ui_down(1)
+            safe_wait(0.2)
+            
+            # Spam enter to buy multiple of this seed
+            print(f"  💰 Attempting to buy {seed_name}")
             spam_enter(3)  # Buy 3 of this seed
             safe_wait(0.5)
             
-            # Move back up to continue searching
+            # Move back up using W key to continue searching
+            print(f"  ⬆️ Moving back up")
             navigate_ui_up(1)
-            safe_wait(0.3)
+            safe_wait(0.2)
             
-            # Move down to next item
+            # Move down to next item using S key
+            print(f"  ⬇️ Moving to next item")
             navigate_ui_down(1)
             safe_wait(0.3)
             
-            # For now, we'll assume we found it after a few attempts
-            if scroll_attempt >= len(SEED_ITEMS):
+            # Check if we've found our seed (simplified - in reality would need OCR)
+            # For now, we'll buy from a few positions and assume we got it
+            if scroll_attempt >= 5:  # Try first 5 positions for each seed
+                print(f"  ✅ Attempted purchase of {seed_name}")
                 break
         
         log_purchase("Seeds", seed_name)
@@ -426,6 +463,61 @@ def get_pixel_color(x, y):
         return hex_color
     except Exception as e:
         print(f"Error getting pixel color: {e}")
+        return None
+
+def detect_shop_restock_time(shop_name):
+    """Try to detect actual restock time from game UI"""
+    try:
+        print(f"🕵️ Detecting restock time for {shop_name}...")
+        
+        # Take screenshot of the area where timer is displayed
+        # You may need to adjust these coordinates based on your screen resolution
+        timer_areas = {
+            "Seeds": (100, 100, 300, 50),    # x, y, width, height
+            "Gears": (100, 150, 300, 50),
+            "Eggs": (100, 200, 300, 50),
+            "Cosmetics": (100, 250, 300, 50)
+        }
+        
+        if shop_name not in timer_areas:
+            print(f"⚠️ No timer area defined for {shop_name}")
+            return None
+        
+        x, y, width, height = timer_areas[shop_name]
+        
+        # Take screenshot of timer area
+        screenshot = pyautogui.screenshot(region=(x, y, width, height))
+        
+        # For now, we'll use a simple approach
+        # In a real implementation, you'd use OCR (like pytesseract) to read the text
+        
+        # Simple color-based detection (placeholder)
+        # This would need to be replaced with actual OCR
+        print(f"📸 Screenshot taken for {shop_name} timer detection")
+        
+        # Return None for now - actual implementation would parse the timer text
+        return None
+        
+    except Exception as e:
+        print(f"❌ Error detecting restock time for {shop_name}: {e}")
+        return None
+
+def parse_time_string(time_str):
+    """Parse time string like '3:29' or '0:45' into seconds"""
+    try:
+        if ':' not in time_str:
+            return None
+        
+        parts = time_str.split(':')
+        if len(parts) != 2:
+            return None
+        
+        minutes = int(parts[0])
+        seconds = int(parts[1])
+        total_seconds = minutes * 60 + seconds
+        
+        return total_seconds
+    except:
         return None
 
 def find_egg_by_color(target_eggs):

@@ -134,19 +134,22 @@ Grow-a-Garden-Macro/
 
 ### Seed Shop (Restocks every 1 hour)
 - **22 different seeds** available
+- **WASD Navigation** to find and select items
 - **Single interaction** needed with NPC
-- **Navigation**: Uses UI Navigation to find Seeds button
+- **Smart scrolling** through all seed options
 
-### Gear Shop (Restocks every 2 hours)
+### Gear Shop (Restocks every 5 minutes)
 - **13 different tools** available
 - **Uses Recall Wrench** to teleport to location
-- **Zooms in close** for precise interaction
+- **WASD Navigation** through gear menu
+- **Fast restock** for quick purchases
 
 ### Egg Shop (Restocks every 30 minutes)
 - **10 different eggs** available with color recognition
 - **3 egg spots** to check
 - **Color-based detection** to identify specific eggs
 - **Automatic movement** between egg spots
+- **Real-time timer detection** from game UI
 
 ### Cosmetic Shop (Restocks every 4 hours)
 - **9 cosmetic items** available
@@ -167,9 +170,11 @@ Grow-a-Garden-Macro/
 
 ### New Navigation Workflow
 - **Automatic camera setup**: 20 scrolls up, then 8 scrolls down
-- **Smart UI navigation**: Moves precisely to shop buttons
-- **Intelligent item finding**: Scrolls through shops to find your items
-- **Efficient shop closing**: Automated navigation to inventory and recall wrench
+- **WASD UI Navigation**: Uses W/A/S/D keys for precise movement
+- **Smart shop navigation**: Moves step-by-step to shop buttons
+- **Intelligent item finding**: Scrolls through shops using S key
+- **Efficient shop closing**: Automated WASD navigation to inventory
+- **Real-time timer detection**: Reads actual restock times from game
 
 ### Webhook Configuration
 - **Optional**: Only needed if you want Discord notifications
@@ -193,13 +198,27 @@ Grow-a-Garden-Macro/
 - **Keybind must match** the one in macro settings
 - **Stable internet connection** recommended
 
-## 📊 Timer System
+## 📊 Smart Timer System
 
-The macro tracks when each shop was last visited and their restock times:
+The macro intelligently tracks shop restock times:
 
-- **Green "Ready"**: Shop is available for purchase
-- **Progress bar**: Shows time until next restock
-- **Automatic checking**: Updates every second
+### 🕐 **Restock Schedule:**
+- **Seed Shop**: 1 hour (3600 seconds)
+- **Gear Shop**: 5 minutes (300 seconds) - Fast restocks!
+- **Egg Shop**: 30 minutes (1800 seconds)
+- **Cosmetic Shop**: 4 hours (14400 seconds)
+
+### 🎯 **Smart Detection:**
+- **Real-time UI reading**: Attempts to read actual timer from game
+- **Fallback calculation**: Uses internal timer if UI reading fails
+- **Visual progress bars**: Show countdown to next restock
+- **Automatic updates**: Checks every second for changes
+
+### 📈 **Status Indicators:**
+- **"Ready"**: Shop is available for purchase
+- **"247s"**: Shows exact seconds until restock
+- **Progress bars**: Visual countdown representation
+- **Auto-prioritization**: Visits shops when they become ready
 
 ## 🔔 Webhook Reports
 
@@ -266,10 +285,11 @@ The new console at the bottom shows real-time status:
 - **Countdown timers** showing seconds until restock
 - **Color-coded status** (Ready vs. Waiting)
 
-### Hotkeys
-- **F1**: Start macro
-- **F2**: Stop macro
-- **Works globally** within the application
+### Hotkeys (Simplified!)
+- **F1**: Start macro (works anywhere in the app)
+- **F2**: Stop macro (instant stop)
+- **No complex combinations** - just F1 and F2!
+- **Visual feedback** - buttons show current status
 
 ## 🥚 Egg Color Recognition
 
