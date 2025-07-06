@@ -163,83 +163,75 @@ def safe_wait(duration):
 
 def scroll_mouse_up(amount=20):
     """Scroll mouse up (zoom in)"""
-    print(f"🔍 Zooming in ({amount} scrolls)")
     for _ in range(amount):
         if not macro_running:
             return False
-        pyautogui.scroll(200)
-        time.sleep(min(MACRO_SPEED, 0.05))
+        if pyautogui:
+            pyautogui.scroll(200)
+        time.sleep(0.02)  # Fast scroll
     return True
 
 def scroll_mouse_down(amount=8):
     """Scroll mouse down (zoom out)"""
-    print(f"🔍 Zooming out ({amount} scrolls)")
     for _ in range(amount):
         if not macro_running:
             return False
-        pyautogui.scroll(-200)
-        time.sleep(min(MACRO_SPEED, 0.05))
+        if pyautogui:
+            pyautogui.scroll(-200)
+        time.sleep(0.02)  # Fast scroll
     return True
 
 def toggle_ui_navigation():
     """Toggle UI navigation on/off"""
     if not macro_running:
         return False
-    print(f"🎮 Toggling UI Navigation ({UI_NAV_KEY})")
     safe_press(UI_NAV_KEY)
-    safe_wait(0.15)
+    safe_wait(0.1)
     return True
 
 def navigate_ui_right(steps=1):
     """Navigate UI to the right using D key"""
-    print(f"➡️ Moving UI right ({steps} steps)")
     safe_press('d', steps)
-    safe_wait(0.2)
+    safe_wait(0.1)
     return True
 
 def navigate_ui_down(steps=1):
     """Navigate UI down using S key"""
-    print(f"⬇️ Moving UI down ({steps} steps)")
     safe_press('s', steps)
-    safe_wait(0.2)
+    safe_wait(0.1)
     return True
 
 def navigate_ui_up(steps=1):
     """Navigate UI up using W key"""
-    print(f"⬆️ Moving UI up ({steps} steps)")
     safe_press('w', steps)
-    safe_wait(0.2)
+    safe_wait(0.1)
     return True
 
 def navigate_ui_left(steps=1):
     """Navigate UI to the left using A key"""
-    print(f"⬅️ Moving UI left ({steps} steps)")
     safe_press('a', steps)
-    safe_wait(0.2)
+    safe_wait(0.1)
     return True
 
 def press_enter():
     """Press enter key"""
-    print("✅ Pressing Enter")
     safe_press('enter')
-    safe_wait(0.5)
+    safe_wait(0.2)
     return True
 
 def press_e():
     """Press E key to interact"""
-    print("🤝 Pressing E to interact")
     safe_press('e')
-    safe_wait(0.5)
+    safe_wait(0.3)
     return True
 
-def spam_enter(times=5):
-    """Spam enter key multiple times"""
-    print(f"🔄 Spamming Enter ({times} times)")
+def spam_enter(times=10):
+    """Spam enter key multiple times fast"""
     for _ in range(times):
         if not macro_running:
             return False
         safe_press('enter')
-        safe_wait(0.1)
+        safe_wait(0.05)  # Very fast
     return True
 
 def equip_recall_wrench():
@@ -293,52 +285,52 @@ def close_shop():
 
 def setup_initial_camera():
     """Set up the initial camera position"""
-    print("🎥 Setting up camera position")
+    print("Setting up camera...")
     
     # Zoom in all the way (20 scrolls up)
     scroll_mouse_up(20)
-    safe_wait(0.5)
+    safe_wait(0.2)
+    
+    # Look down at the floor using mouse movement
+    if pyautogui:
+        # Move mouse down to look at floor
+        pyautogui.move(0, 200, duration=0.1)
+        safe_wait(0.1)
     
     # Then zoom out a bit (8 scrolls down)
     scroll_mouse_down(8)
-    safe_wait(0.5)
+    safe_wait(0.2)
     
-    print("✅ Camera setup completed")
+    print("Camera ready")
     return True
 
 def navigate_to_seed_shop():
     """Navigate to seed shop using UI navigation"""
-    print("🌱 Navigating to seed shop")
+    print("Going to seed shop")
     
     # Open UI navigation
     toggle_ui_navigation()
-    safe_wait(0.5)
+    safe_wait(0.2)
     
-    # Navigate to Seeds button - Move right 3 times using D key
-    print("🧭 Moving to Seeds button...")
-    for i in range(3):
-        print(f"  Step {i+1}: Moving right")
-        navigate_ui_right(1)
-        safe_wait(0.3)
+    # Navigate to Seeds button - Move right 3 times
+    navigate_ui_right(3)
+    safe_wait(0.1)
     
     # Press enter to select seeds
-    print("✅ Selecting Seeds")
     press_enter()
-    safe_wait(1.0)
+    safe_wait(0.5)
     
     # Press E to interact with NPC
-    print("🤝 Talking to Seeds NPC")
     press_e()
-    safe_wait(1.0)
+    safe_wait(0.5)
     
     return True
 
 def buy_seeds(seeds_to_buy):
-    """Buy selected seeds from seed shop"""
-    print(f"🌱 Buying seeds: {seeds_to_buy}")
+    """Buy selected seeds from seed shop - find specific seeds and buy them"""
+    print(f"Buying seeds: {seeds_to_buy}")
     
     if not seeds_to_buy:
-        print("No seeds selected to buy")
         return True
     
     # For each seed we need to buy
@@ -346,50 +338,33 @@ def buy_seeds(seeds_to_buy):
         if not macro_running:
             break
             
-        print(f"🔍 Looking for {seed_name}")
+        print(f"Finding {seed_name}")
         
-        # Find the seed by scrolling down through the shop using S key
-        seed_found = False
-        max_scrolls = len(SEED_ITEMS) + 5  # Search through all seeds plus buffer
-        
-        for scroll_attempt in range(max_scrolls):
-            if not macro_running:
-                break
-                
-            print(f"  🔍 Checking item position {scroll_attempt + 1}")
+        # Find the seed's position in the list
+        if seed_name in SEED_ITEMS:
+            seed_index = SEED_ITEMS.index(seed_name)
             
-            # Press enter to try to select/buy current item
+            # Navigate to the seed's position
+            for _ in range(seed_index):
+                if not macro_running:
+                    break
+                navigate_ui_down(1)
+                safe_wait(0.05)
+            
+            # Buy the seed: enter, move down, spam enter 10 times
             press_enter()
-            safe_wait(0.3)
-            
-            # Move down one using S key to access buy button/quantity
-            print(f"  ⬇️ Moving to buy option")
             navigate_ui_down(1)
-            safe_wait(0.2)
+            spam_enter(10)  # Buy 10 of this seed fast
             
-            # Spam enter to buy multiple of this seed
-            print(f"  💰 Attempting to buy {seed_name}")
-            spam_enter(3)  # Buy 3 of this seed
-            safe_wait(0.5)
+            # Reset position to top for next seed
+            for _ in range(seed_index + 1):
+                if not macro_running:
+                    break
+                navigate_ui_up(1)
+                safe_wait(0.05)
             
-            # Move back up using W key to continue searching
-            print(f"  ⬆️ Moving back up")
-            navigate_ui_up(1)
-            safe_wait(0.2)
-            
-            # Move down to next item using S key
-            print(f"  ⬇️ Moving to next item")
-            navigate_ui_down(1)
-            safe_wait(0.3)
-            
-            # Check if we've found our seed (simplified - in reality would need OCR)
-            # For now, we'll buy from a few positions and assume we got it
-            if scroll_attempt >= 5:  # Try first 5 positions for each seed
-                print(f"  ✅ Attempted purchase of {seed_name}")
-                break
-        
-        log_purchase("Seeds", seed_name)
-        print(f"✅ Purchased {seed_name}")
+            log_purchase("Seeds", seed_name)
+            print(f"Bought {seed_name}")
     
     return True
 
@@ -631,8 +606,6 @@ def buy_eggs(eggs_to_buy):
 
 def run_macro_cycle():
     """Run one complete macro cycle through all shops"""
-    print("🔄 Starting macro cycle...")
-    
     # Check timers first
     check_shop_timers()
     
@@ -640,7 +613,7 @@ def run_macro_cycle():
     if (is_shop_ready("Seeds") and 
         selected_items.get("Seeds") and 
         macro_running):
-        print("🌱 Seed shop is ready!")
+        print("Visiting seed shop")
         navigate_to_seed_shop()
         buy_seeds(selected_items["Seeds"])
         update_shop_timer("Seeds", shop_timers["Seeds"]["total_time"])
@@ -649,7 +622,7 @@ def run_macro_cycle():
     if (is_shop_ready("Gears") and 
         selected_items.get("Gears") and 
         macro_running):
-        print("⚙️ Gear shop is ready!")
+        print("Visiting gear shop")
         navigate_to_gear_shop()
         buy_gears(selected_items["Gears"])
         update_shop_timer("Gears", shop_timers["Gears"]["total_time"])
@@ -658,12 +631,12 @@ def run_macro_cycle():
     if (is_shop_ready("Eggs") and 
         selected_items.get("Eggs") and 
         macro_running):
-        print("🥚 Egg shop is ready!")
+        print("Visiting egg shop")
         navigate_to_egg_shop()
         buy_eggs(selected_items["Eggs"])
         update_shop_timer("Eggs", shop_timers["Eggs"]["total_time"])
     
-    print("✅ Macro cycle completed")
+    print("Cycle complete")
 
 def get_next_restock_time():
     """Get the time until the next shop restocks"""
@@ -750,13 +723,13 @@ def run_macro(items, webhook):
             
             if next_restock_time is None or next_restock_time <= 0:
                 # All shops are ready, run a cycle
-                print("🏪 Shops are ready, running cycle...")
+                print("Running shop cycle...")
                 run_macro_cycle()
-                safe_wait(10)  # Wait 10 seconds between cycles
+                safe_wait(5)  # Wait 5 seconds between cycles (faster)
             else:
                 # Wait for next restock
-                print(f"⏰ Next restock: {next_shop} in {int(next_restock_time)} seconds")
-                safe_wait(min(60, next_restock_time))  # Check every minute or when ready
+                print(f"Waiting for {next_shop}: {int(next_restock_time)}s")
+                safe_wait(min(30, next_restock_time))  # Check every 30 seconds
                 
     except KeyboardInterrupt:
         print("⏹ Macro interrupted by user")

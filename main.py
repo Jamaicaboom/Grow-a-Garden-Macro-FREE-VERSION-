@@ -505,14 +505,14 @@ class MainWindow(QWidget):
                 print("   Go to Seeds, Gears, or Eggs tabs and check some items.")
                 return
             
-            # Set macro speed
+            # Set macro speed (made faster)
             speed_map = {
-                "Neutral": 0.05,
-                "Fast": 0.03,
-                "Ultra": 0.015,
-                "Max": 0.005
+                "Neutral": 0.02,
+                "Fast": 0.015,
+                "Ultra": 0.01,
+                "Max": 0.003
             }
-            chosen_speed = speed_map.get(self.speed_dropdown.currentText(), 0.05)
+            chosen_speed = speed_map.get(self.speed_dropdown.currentText(), 0.02)
             print(f"⚡ Setting macro speed: {self.speed_dropdown.currentText()} ({chosen_speed}s)")
             set_macro_speed(chosen_speed)
             
@@ -618,4 +618,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
+    window.setFocus()  # Ensure window has focus for hotkeys
     sys.exit(app.exec_())
