@@ -15,8 +15,8 @@ A comprehensive macro for automating shop purchases in Roblox's "Grow a Garden" 
 
 ```
 Grow-a-Garden-Macro/
-├── main.py                 # Main GUI application
-├── MacroLogic.py           # Macro automation logic
+├── main.py                 # Main GUI application with console output
+├── MacroLogic.py           # Macro automation logic with color recognition
 ├── Webhook.py              # Discord webhook functionality
 ├── requirements.txt        # Python dependencies
 ├── README.md              # This file
@@ -24,6 +24,7 @@ Grow-a-Garden-Macro/
 ├── start_macro.bat        # Windows quick start script
 ├── start_macro.sh         # Linux/macOS quick start script
 ├── test_setup.py          # Setup verification script
+├── test_macro_simple.py   # Simple dependency test (no GUI needed)
 └── Images/
     ├── Close.png          # Custom close button image
     └── Minimize.png       # Custom minimize button image
@@ -220,10 +221,38 @@ If configured, the macro sends hourly reports showing:
 - **Keep backup of important items**
 
 ### Troubleshooting
-- **Macro not working**: Check your UI Navigation keybind
-- **Wrong items bought**: Verify your item selections
-- **Timer issues**: Restart the macro to reset timers
-- **Webhook not sending**: Test webhook URL in settings
+
+#### 🚨 **Macro Won't Start (Most Common Issue)**
+If the macro doesn't start when you press F1:
+
+1. **Check the console output** (green text area at bottom of GUI)
+2. **Most likely cause**: Missing dependencies
+   ```
+   ❌ pyautogui not found - install with: pip install pyautogui
+   ❌ keyboard not found - install with: pip install keyboard
+   ```
+3. **Solution**: Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   Or individually:
+   ```bash
+   pip install pyautogui keyboard requests pillow
+   ```
+
+#### 🔧 **Other Common Issues**
+- **No items selected**: Check boxes in Seeds/Gears/Eggs tabs first
+- **Macro not moving**: Check your UI Navigation keybind matches game settings
+- **Wrong items bought**: Verify your item selections match what you want
+- **Timer issues**: Restart the macro to reset all timers
+- **Webhook not sending**: Test webhook URL in settings tab
+
+#### 📱 **GUI Console Output**
+The new console at the bottom shows real-time status:
+- `🚀 Starting macro...` - Macro is initializing
+- `❌ Dependencies check failed!` - Install missing packages
+- `✅ Dependencies loaded successfully` - Ready to run
+- `📝 Selected items: {...}` - Shows what will be purchased
 
 ## 🎨 GUI Features
 

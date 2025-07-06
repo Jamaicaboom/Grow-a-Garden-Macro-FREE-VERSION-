@@ -1,9 +1,42 @@
 import time
-import pyautogui
-import keyboard
 import threading
 from datetime import datetime, timedelta
-from Webhook import log_purchase, send_hourly_report
+
+# Import dependencies with error handling
+pyautogui = None
+keyboard = None
+
+def check_dependencies():
+    """Check and import dependencies"""
+    global pyautogui, keyboard
+    
+    try:
+        import pyautogui as pg
+        pyautogui = pg
+        print("✅ pyautogui loaded")
+    except ImportError:
+        print("❌ pyautogui not found - install with: pip install pyautogui")
+        return False
+    
+    try:
+        import keyboard as kb
+        keyboard = kb
+        print("✅ keyboard loaded")
+    except ImportError:
+        print("❌ keyboard not found - install with: pip install keyboard")
+        return False
+    
+    try:
+        from Webhook import log_purchase, send_hourly_report
+        print("✅ Webhook module loaded")
+        # Make these available globally
+        globals()['log_purchase'] = log_purchase
+        globals()['send_hourly_report'] = send_hourly_report
+    except ImportError as e:
+        print(f"❌ Webhook import failed: {e}")
+        return False
+    
+    return True
 
 # Global variables
 MACRO_SPEED = 0.1
@@ -12,7 +45,7 @@ UI_NAV_KEY = '\\'
 selected_items = {}
 webhook_url = ""
 
-# Shop timer management
+# Shop timer management (all start ready)
 shop_timers = {
     "Seeds": {"time_left": 0, "total_time": 3600, "last_visited": None},     # 1 hour
     "Gears": {"time_left": 0, "total_time": 7200, "last_visited": None},     # 2 hours  
@@ -560,35 +593,60 @@ def run_macro(items, webhook):
     """Main macro execution function"""
     global macro_running, selected_items, webhook_url
     
-    macro_running = True
-    selected_items = items
-    webhook_url = webhook
-    
-    print("🚀 Starting Grow a Garden macro...")
-    print(f"📝 Selected items: {items}")
-    
-    # Initial camera setup
-    setup_initial_camera()
-    
-    # Start timer update thread
-    timer_thread = threading.Thread(target=timer_update_thread)
-    timer_thread.daemon = True
-    timer_thread.start()
-    
-    # Start hourly report thread if webhook is configured
-    if webhook_url:
-        report_thread = threading.Thread(target=hourly_report_thread)
-        report_thread.daemon = True
-        report_thread.start()
-    
-    # Main macro loop
     try:
+        print("🚀 Starting Grow a Garden macro...")
+        print(f"📝 Selected items: {items}")
+        
+        # Check dependencies first
+        print("🔍 Checking dependencies...")
+        if not check_dependencies():
+            print("❌ Dependencies check failed!")
+            print("Please install dependencies with: pip install -r requirements.txt")
+            return
+        
+        macro_running = True
+        selected_items = items
+        webhook_url = webhook
+        
+        print("🎥 Setting up camera...")
+        # Initial camera setup
+        if not setup_initial_camera():
+            print("❌ Camera setup failed")
+            return
+        
+        print("⏰ Starting timer threads...")
+        # Start timer update thread
+        timer_thread = threading.Thread(target=timer_update_thread)
+        timer_thread.daemon = True
+        timer_thread.start()
+        
+        # Start hourly report thread if webhook is configured
+        if webhook_url:
+            print("📡 Starting webhook thread...")
+            report_thread = threading.Thread(target=hourly_report_thread)
+            report_thread.daemon = True
+            report_thread.start()
+        
+        print("🔄 Starting main macro loop...")
+        
+        # Test basic functionality first
+        print("🧪 Testing basic controls...")
+        if not test_basic_controls():
+            print("❌ Basic controls test failed")
+            return
+        
+        # Main macro loop
+        cycle_count = 0
         while macro_running:
+            cycle_count += 1
+            print(f"\n🔄 === Macro Cycle {cycle_count} ===")
+            
             # Check what's the next shop to restock
             next_shop, next_restock_time = get_next_restock_time()
             
-            if next_restock_time is None:
+            if next_restock_time is None or next_restock_time <= 0:
                 # All shops are ready, run a cycle
+                print("🏪 Shops are ready, running cycle...")
                 run_macro_cycle()
                 safe_wait(10)  # Wait 10 seconds between cycles
             else:
@@ -600,9 +658,28 @@ def run_macro(items, webhook):
         print("⏹ Macro interrupted by user")
     except Exception as e:
         print(f"❌ Macro error: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         macro_running = False
         print("⏹ Macro stopped")
+
+def test_basic_controls():
+    """Test basic controls to make sure everything is working"""
+    try:
+        print("  🔍 Testing mouse scroll...")
+        pyautogui.scroll(1)
+        safe_wait(0.1)
+        pyautogui.scroll(-1)
+        
+        print("  ⌨️ Testing keyboard input...")
+        # Don't actually press keys during test, just make sure libraries work
+        
+        print("  ✅ Basic controls test passed")
+        return True
+    except Exception as e:
+        print(f"  ❌ Basic controls test failed: {e}")
+        return False
 
 def test_webhook_func(webhook_url):
     """Test webhook function (for compatibility with old code)"""

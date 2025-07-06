@@ -3,7 +3,7 @@ import os
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
     QPushButton, QTabWidget, QCheckBox, QScrollArea, QLineEdit, QGridLayout,
-    QProgressBar, QFrame
+    QProgressBar, QFrame, QTextEdit, QSplitter
 )
 from PyQt5.QtCore import Qt, QEvent, QTimer, QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap, QIcon, QPalette, QColor
@@ -108,6 +108,9 @@ class MainWindow(QWidget):
 
         # Install event filter to capture keypresses for hotkeys
         self.installEventFilter(self)
+        
+        # Set up console logging
+        self.setup_console_logging()
 
     def init_ui(self):
         main_layout = QVBoxLayout()
@@ -125,9 +128,33 @@ class MainWindow(QWidget):
         self.timer_display = self.create_timer_display()
         content_layout.addWidget(self.timer_display)
 
+        # Create splitter for tabs and console
+        splitter = QSplitter(Qt.Vertical)
+        
         # Tabs
         self.tabs = QTabWidget()
-        content_layout.addWidget(self.tabs)
+        splitter.addWidget(self.tabs)
+        
+        # Console output
+        self.console = QTextEdit()
+        self.console.setMaximumHeight(150)
+        self.console.setStyleSheet("""
+            QTextEdit {
+                background-color: #1a1a1a;
+                color: #00ff00;
+                font-family: 'Courier New', monospace;
+                font-size: 10px;
+                border: 1px solid purple;
+            }
+        """)
+        self.console.setReadOnly(True)
+        self.console.setPlaceholderText("Console output will appear here...")
+        splitter.addWidget(self.console)
+        
+        # Set splitter sizes (tabs larger, console smaller)
+        splitter.setSizes([400, 150])
+        
+        content_layout.addWidget(splitter)
 
         # Add tabs
         self.seeds_tab = self.create_scrollable_tab(self.get_seeds_content())
@@ -387,6 +414,42 @@ class MainWindow(QWidget):
         widget.setLayout(layout)
         return widget
 
+    def setup_console_logging(self):
+        """Set up console logging to redirect print statements"""
+        import sys
+        
+        # Store original stdout
+        self.original_stdout = sys.stdout
+        
+        # Create custom stdout that writes to console
+        class ConsoleOutput:
+            def __init__(self, console_widget):
+                self.console = console_widget
+                
+            def write(self, text):
+                if text.strip():  # Only log non-empty lines
+                    self.console.append(text.strip())
+                    # Auto-scroll to bottom
+                    self.console.verticalScrollBar().setValue(
+                        self.console.verticalScrollBar().maximum()
+                    )
+                    # Process events to update GUI
+                    QApplication.processEvents()
+                
+            def flush(self):
+                pass
+        
+        # Redirect stdout to console
+        sys.stdout = ConsoleOutput(self.console)
+        
+        # Initial message
+        self.log_message("🌱 Grow a Garden Macro - Console Ready")
+        self.log_message("Select items and press F1 to start!")
+    
+    def log_message(self, message):
+        """Log a message to the console"""
+        print(message)
+    
     def update_ui_nav_key(self, text):
         """Update the UI navigation key in the macro logic"""
         if text:
@@ -429,32 +492,81 @@ class MainWindow(QWidget):
         return selected
 
     def start_macro(self):
-        # Get selected items
-        selected_items = self.get_selected_items()
-        
-        # Check if any items are selected
-        if not any(selected_items.values()):
-            print("No items selected! Please select items to purchase.")
-            return
-        
-        # Set macro speed
-        speed_map = {
-            "Neutral": 0.05,
-            "Fast": 0.03,
-            "Ultra": 0.015,
-            "Max": 0.005
-        }
-        chosen_speed = speed_map.get(self.speed_dropdown.currentText(), 0.05)
-        set_macro_speed(chosen_speed)
-        
-        # Get webhook URL
-        webhook_url = self.webhook_input.text().strip()
-        
-        # Start macro with selected items
-        run_macro(selected_items, webhook_url)
+        try:
+            print("🚀 Starting macro...")
+            
+            # Get selected items
+            selected_items = self.get_selected_items()
+            print(f"📝 Selected items: {selected_items}")
+            
+            # Check if any items are selected
+            if not any(selected_items.values()):
+                print("❌ No items selected! Please select items to purchase.")
+                print("   Go to Seeds, Gears, or Eggs tabs and check some items.")
+                return
+            
+            # Set macro speed
+            speed_map = {
+                "Neutral": 0.05,
+                "Fast": 0.03,
+                "Ultra": 0.015,
+                "Max": 0.005
+            }
+            chosen_speed = speed_map.get(self.speed_dropdown.currentText(), 0.05)
+            print(f"⚡ Setting macro speed: {self.speed_dropdown.currentText()} ({chosen_speed}s)")
+            set_macro_speed(chosen_speed)
+            
+            # Get webhook URL
+            webhook_url = self.webhook_input.text().strip()
+            if webhook_url:
+                print(f"🔗 Webhook configured")
+            else:
+                print("📝 No webhook configured (optional)")
+            
+            # Update button text to show macro is starting
+            self.start_button.setText("Starting...")
+            self.start_button.setEnabled(False)
+            
+            print("✅ All checks passed, launching macro...")
+            
+            # Start macro with selected items in a separate thread
+            import threading
+            macro_thread = threading.Thread(target=self._run_macro_thread, args=(selected_items, webhook_url))
+            macro_thread.daemon = True
+            macro_thread.start()
+            
+        except Exception as e:
+            print(f"❌ Error starting macro: {e}")
+            import traceback
+            traceback.print_exc()
+            self.start_button.setText("Start Macro (F1)")
+            self.start_button.setEnabled(True)
+    
+    def _run_macro_thread(self, selected_items, webhook_url):
+        """Run the macro in a separate thread"""
+        try:
+            # Update button text
+            self.start_button.setText("Macro Running...")
+            
+            # Start macro with selected items
+            run_macro(selected_items, webhook_url)
+            
+        except Exception as e:
+            print(f"❌ Macro error: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            # Reset button when macro stops
+            self.start_button.setText("Start Macro (F1)")
+            self.start_button.setEnabled(True)
 
     def stop_macro(self):
+        print("🛑 Stopping macro...")
         stop_macro()
+        # Reset button text
+        self.start_button.setText("Start Macro (F1)")
+        self.start_button.setEnabled(True)
+        print("✅ Macro stopped")
 
     def test_webhook(self):
         url = self.webhook_input.text().strip()
@@ -466,7 +578,14 @@ class MainWindow(QWidget):
 
     def closeEvent(self, event):
         """Clean up when closing the application"""
+        # Restore original stdout
+        import sys
+        if hasattr(self, 'original_stdout'):
+            sys.stdout = self.original_stdout
+        
+        # Stop timer thread
         self.timer_thread.stop()
+        
         event.accept()
 
     # Draggable window override
