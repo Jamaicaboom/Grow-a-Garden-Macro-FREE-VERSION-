@@ -287,8 +287,9 @@ class MainWindow(QWidget):
         return self.create_checkbox_list(gears, "Gears")
 
     def get_eggs_content(self):
-        eggs = ["Common Egg", "Common Summer Egg", "Rare Summer Egg",
-                "Mythical Egg", "Paradise Egg", "Bee Egg", "Bug Egg"]
+        eggs = ["Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg",
+                "Mythical Egg", "Bug Egg", "Common Summer Egg", "Rare Summer Egg",
+                "Paradise Egg", "Bee Egg"]
         return self.create_checkbox_list(eggs, "Eggs")
 
     def create_cosmetics_tab(self):

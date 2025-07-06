@@ -142,9 +142,10 @@ Grow-a-Garden-Macro/
 - **Zooms in close** for precise interaction
 
 ### Egg Shop (Restocks every 30 minutes)
-- **7 different eggs** available
+- **10 different eggs** available with color recognition
 - **3 egg spots** to check
-- **Walks between spots** to find available eggs
+- **Color-based detection** to identify specific eggs
+- **Automatic movement** between egg spots
 
 ### Cosmetic Shop (Restocks every 4 hours)
 - **9 cosmetic items** available
@@ -162,6 +163,12 @@ Grow-a-Garden-Macro/
 - **Default**: `\` (backslash)
 - **Change if needed**: Some users prefer different keys
 - **Make sure it matches** your in-game UI Navigation keybind
+
+### New Navigation Workflow
+- **Automatic camera setup**: 20 scrolls up, then 8 scrolls down
+- **Smart UI navigation**: Moves precisely to shop buttons
+- **Intelligent item finding**: Scrolls through shops to find your items
+- **Efficient shop closing**: Automated navigation to inventory and recall wrench
 
 ### Webhook Configuration
 - **Optional**: Only needed if you want Discord notifications
@@ -234,6 +241,28 @@ If configured, the macro sends hourly reports showing:
 - **F1**: Start macro
 - **F2**: Stop macro
 - **Works globally** within the application
+
+## 🥚 Egg Color Recognition
+
+The macro uses advanced color detection to identify specific eggs at each egg spot:
+
+### Supported Egg Colors:
+- **Common Egg**: White (0xFFFFFF)
+- **Uncommon Egg**: Light Blue (0x81A7D3)
+- **Rare Egg**: Brown (0xBB5421)
+- **Legendary Egg**: Dark Blue (0x2D78A3)
+- **Mythical Egg**: Cyan (0x00CCFF)
+- **Bug Egg**: Light Green (0x86FFD5)
+- **Common Summer Egg**: Bright Cyan (0x00FFFF)
+- **Rare Summer Egg**: Light Yellow (0xFBFCA8)
+- **Paradise Egg**: Sky Blue (0x32CDFF)
+- **Bee Egg**: Blue (0x00ACFF)
+
+### How It Works:
+1. **Scans 3 egg spots** automatically
+2. **Captures screen colors** at each spot
+3. **Matches colors** to your selected eggs
+4. **Moves to correct spot** and purchases automatically
 
 ## 📝 Customization
 

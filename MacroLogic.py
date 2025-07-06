@@ -36,10 +36,19 @@ GEAR_ITEMS = [
     "Master Sprinkler", "Cleaning Spray", "Favorite Tool", "Harvest Tool", "Friendship Pot"
 ]
 
-EGG_ITEMS = [
-    "Common Egg", "Common Summer Egg", "Rare Summer Egg",
-    "Mythical Egg", "Paradise Egg", "Bee Egg", "Bug Egg"
-]
+# Egg color map for recognition
+EGG_COLOR_MAP = {
+    "Common Egg": 0xFFFFFF,
+    "Uncommon Egg": 0x81A7D3,
+    "Rare Egg": 0xBB5421,
+    "Legendary Egg": 0x2D78A3,
+    "Mythical Egg": 0x00CCFF,
+    "Bug Egg": 0x86FFD5,
+    "Common Summer Egg": 0x00FFFF,
+    "Rare Summer Egg": 0xFBFCA8,
+    "Paradise Egg": 0x32CDFF,
+    "Bee Egg": 0x00ACFF
+}
 
 def set_macro_speed(new_speed):
     """Set the macro execution speed"""
@@ -101,6 +110,7 @@ def safe_wait(duration):
 
 def scroll_mouse_up(amount=20):
     """Scroll mouse up (zoom in)"""
+    print(f"🔍 Zooming in ({amount} scrolls)")
     for _ in range(amount):
         if not macro_running:
             return False
@@ -110,6 +120,7 @@ def scroll_mouse_up(amount=20):
 
 def scroll_mouse_down(amount=8):
     """Scroll mouse down (zoom out)"""
+    print(f"🔍 Zooming out ({amount} scrolls)")
     for _ in range(amount):
         if not macro_running:
             return False
@@ -121,222 +132,364 @@ def toggle_ui_navigation():
     """Toggle UI navigation on/off"""
     if not macro_running:
         return False
+    print(f"🎮 Toggling UI Navigation ({UI_NAV_KEY})")
     safe_press(UI_NAV_KEY)
     safe_wait(0.15)
     return True
 
-def open_inventory():
-    """Open the inventory"""
-    print("🎒 Opening inventory...")
-    safe_press('tab')
+def navigate_ui_right(steps=1):
+    """Navigate UI to the right"""
+    print(f"➡️ Moving UI right ({steps} steps)")
+    safe_press('right', steps)
+    safe_wait(0.2)
+    return True
+
+def navigate_ui_down(steps=1):
+    """Navigate UI down"""
+    print(f"⬇️ Moving UI down ({steps} steps)")
+    safe_press('down', steps)
+    safe_wait(0.2)
+    return True
+
+def navigate_ui_up(steps=1):
+    """Navigate UI up"""
+    print(f"⬆️ Moving UI up ({steps} steps)")
+    safe_press('up', steps)
+    safe_wait(0.2)
+    return True
+
+def press_enter():
+    """Press enter key"""
+    print("✅ Pressing Enter")
+    safe_press('enter')
     safe_wait(0.5)
     return True
 
-def equip_recall_wrench():
-    """Equip the recall wrench from inventory slot 2"""
-    print("🔧 Equipping recall wrench...")
-    open_inventory()
-    safe_press('2')  # Press 2 to equip item in slot 2
+def press_e():
+    """Press E key to interact"""
+    print("🤝 Pressing E to interact")
+    safe_press('e')
     safe_wait(0.5)
-    safe_press('tab')  # Close inventory
+    return True
+
+def spam_enter(times=5):
+    """Spam enter key multiple times"""
+    print(f"🔄 Spamming Enter ({times} times)")
+    for _ in range(times):
+        if not macro_running:
+            return False
+        safe_press('enter')
+        safe_wait(0.1)
+    return True
+
+def equip_recall_wrench():
+    """Equip recall wrench from slot 2"""
+    print("🔧 Equipping recall wrench from slot 2")
+    safe_press('2')
     safe_wait(0.5)
     return True
 
 def use_recall_wrench():
-    """Use the recall wrench to teleport"""
-    print("🔧 Using recall wrench...")
-    # Type "recall" to teleport
+    """Use recall wrench to teleport"""
+    print("� Using recall wrench to teleport")
     keyboard.write("recall")
     safe_wait(0.5)
     safe_press('enter')
     safe_wait(2.0)  # Wait for teleport
     return True
 
-def navigate_to_seed_shop():
-    """Navigate to the seed shop"""
-    print("🌱 Navigating to seed shop...")
-    toggle_ui_navigation()
+def close_shop():
+    """Close the current shop using UI navigation"""
+    print("🚪 Closing shop using UI navigation")
     
-    # Navigate to Seeds button and press it
-    safe_press('tab', 3)  # Navigate to Seeds button (adjust as needed)
-    safe_press('enter')
+    # Close UI navigation
+    toggle_ui_navigation()
+    safe_wait(0.3)
+    
+    # Open UI navigation again
+    toggle_ui_navigation()
+    safe_wait(0.3)
+    
+    # Move 4 to the right
+    navigate_ui_right(4)
+    
+    # Move 1 down
+    navigate_ui_down(1)
+    
+    # Move 1 to the right
+    navigate_ui_right(1)
+    
+    safe_wait(0.5)
+    return True
+
+def setup_initial_camera():
+    """Set up the initial camera position"""
+    print("🎥 Setting up camera position")
+    
+    # Zoom in all the way (20 scrolls up)
+    scroll_mouse_up(20)
+    safe_wait(0.5)
+    
+    # Then zoom out a bit (8 scrolls down)
+    scroll_mouse_down(8)
+    safe_wait(0.5)
+    
+    print("✅ Camera setup completed")
+    return True
+
+def navigate_to_seed_shop():
+    """Navigate to seed shop using UI navigation"""
+    print("🌱 Navigating to seed shop")
+    
+    # Open UI navigation
+    toggle_ui_navigation()
+    safe_wait(0.3)
+    
+    # Move 3 to the right
+    navigate_ui_right(3)
+    
+    # Press enter to select seeds
+    press_enter()
     safe_wait(1.0)
+    
+    # Press E to interact with NPC
+    press_e()
+    safe_wait(1.0)
+    
+    return True
+
+def buy_seeds(seeds_to_buy):
+    """Buy selected seeds from seed shop"""
+    print(f"🌱 Buying seeds: {seeds_to_buy}")
+    
+    if not seeds_to_buy:
+        print("No seeds selected to buy")
+        return True
+    
+    # For each seed we need to buy
+    for seed_name in seeds_to_buy:
+        if not macro_running:
+            break
+            
+        print(f"🔍 Looking for {seed_name}")
+        
+        # Find the seed by scrolling down through the shop
+        seed_found = False
+        max_scrolls = 30  # Prevent infinite loop
+        
+        for scroll_attempt in range(max_scrolls):
+            if not macro_running:
+                break
+                
+            # Try to find and buy the seed
+            # Since we can't read text directly, we'll try to buy at each position
+            # This is a simplified approach - in reality you'd need OCR or pattern matching
+            
+            # Press enter to try to buy current item
+            press_enter()
+            safe_wait(0.3)
+            
+            # Move down one to spam enter (buy multiple)
+            navigate_ui_down(1)
+            spam_enter(3)  # Buy 3 of this seed
+            safe_wait(0.5)
+            
+            # Move back up to continue searching
+            navigate_ui_up(1)
+            safe_wait(0.3)
+            
+            # Move down to next item
+            navigate_ui_down(1)
+            safe_wait(0.3)
+            
+            # For now, we'll assume we found it after a few attempts
+            if scroll_attempt >= len(SEED_ITEMS):
+                break
+        
+        log_purchase("Seeds", seed_name)
+        print(f"✅ Purchased {seed_name}")
     
     return True
 
 def navigate_to_gear_shop():
-    """Navigate to the gear shop using recall wrench"""
-    print("⚙️ Navigating to gear shop...")
-    use_recall_wrench()
+    """Navigate to gear shop using recall wrench"""
+    print("⚙️ Navigating to gear shop")
     
-    # Navigate to gear shop location
-    safe_press('w', 5)  # Move forward (adjust as needed)
+    # First close the shop
+    close_shop()
     safe_wait(0.5)
-    
-    # Zoom in close for gear shop interaction
-    scroll_mouse_up(10)
-    safe_wait(0.5)
-    
-    # Click to access gear shop
-    safe_press('e')
-    safe_wait(1.0)
-    
-    return True
-
-def navigate_to_egg_shop():
-    """Navigate to the egg shop"""
-    print("🥚 Navigating to egg shop...")
-    # Return camera to normal first
-    scroll_mouse_down(10)
-    safe_wait(0.5)
-    
-    # Walk forward to egg area
-    safe_press('w', 3)
-    safe_wait(1.0)
-    
-    return True
-
-def navigate_to_cosmetic_shop():
-    """Navigate to the cosmetic shop"""
-    print("💄 Navigating to cosmetic shop...")
-    # Navigate to cosmetic shop area
-    safe_press('w', 2)
-    safe_wait(1.0)
-    
-    return True
-
-def buy_from_seed_shop(items_to_buy):
-    """Buy selected items from seed shop"""
-    print(f"🌱 Buying seeds: {items_to_buy}")
-    
-    # Interact with seed shop NPC
-    safe_press('e')
-    safe_wait(1.0)
-    
-    for item in items_to_buy:
-        if item in SEED_ITEMS and macro_running:
-            item_index = SEED_ITEMS.index(item)
-            print(f"  💰 Buying {item} (index {item_index})")
-            
-            # Navigate to item and buy it
-            # This is a simplified version - you may need to adjust navigation
-            safe_press('tab', item_index + 1)  # Navigate to item
-            safe_press('enter')  # Buy item
-            safe_wait(0.5)
-            
-            log_purchase("Seeds", item)
-    
-    # Close shop
-    safe_press('esc')
-    safe_wait(0.5)
-    
-    # Update shop timer
-    update_shop_timer("Seeds", shop_timers["Seeds"]["total_time"])
-    
-    return True
-
-def buy_from_gear_shop(items_to_buy):
-    """Buy selected items from gear shop"""
-    print(f"⚙️ Buying gears: {items_to_buy}")
-    
-    for item in items_to_buy:
-        if item in GEAR_ITEMS and macro_running:
-            item_index = GEAR_ITEMS.index(item)
-            print(f"  💰 Buying {item} (index {item_index})")
-            
-            # Navigate to item and buy it
-            safe_press('tab', item_index + 1)  # Navigate to item
-            safe_press('enter')  # Buy item
-            safe_wait(0.5)
-            
-            log_purchase("Gears", item)
-    
-    # Close shop
-    safe_press('esc')
-    safe_wait(0.5)
-    
-    # Update shop timer
-    update_shop_timer("Gears", shop_timers["Gears"]["total_time"])
-    
-    return True
-
-def buy_from_egg_shop(items_to_buy):
-    """Buy selected items from egg shop"""
-    print(f"🥚 Buying eggs: {items_to_buy}")
-    
-    # There are 3 egg spots, we need to check each one
-    for i in range(3):
-        if not macro_running:
-            break
-            
-        print(f"  🔍 Checking egg spot {i+1}")
-        
-        # Move to egg spot
-        safe_press('a' if i == 0 else 'd', 2)  # Move left/right between spots
-        safe_wait(0.5)
-        
-        # Check what egg is available
-        safe_press('e')
-        safe_wait(0.5)
-        
-        # For simplicity, we'll try to buy any selected egg
-        # In reality, you'd need to identify which egg is at this spot
-        for item in items_to_buy:
-            if item in EGG_ITEMS and macro_running:
-                print(f"  💰 Attempting to buy {item}")
-                safe_press('enter')  # Buy egg
-                safe_wait(0.5)
-                log_purchase("Eggs", item)
-                break
-    
-    # Update shop timer
-    update_shop_timer("Eggs", shop_timers["Eggs"]["total_time"])
-    
-    return True
-
-def buy_from_cosmetic_shop():
-    """Buy all cosmetics from cosmetic shop"""
-    print("💄 Buying all cosmetics...")
-    
-    # Navigate through all 9 cosmetic items
-    for i in range(9):
-        if not macro_running:
-            break
-            
-        print(f"  💰 Buying cosmetic item {i+1}")
-        
-        # Navigate to cosmetic and buy it
-        safe_press('tab', i + 1)  # Navigate to cosmetic
-        safe_press('enter')  # Buy cosmetic
-        safe_wait(0.5)
-        
-        log_purchase("Cosmetics", f"Cosmetic {i+1}")
-    
-    # Update shop timer
-    update_shop_timer("Cosmetics", shop_timers["Cosmetics"]["total_time"])
-    
-    return True
-
-def setup_initial_position():
-    """Set up the initial camera position and UI state"""
-    print("🔄 Setting up initial position...")
-    
-    # Adjust camera position
-    scroll_mouse_up(20)      # Zoom in
-    safe_wait(0.5)
-    scroll_mouse_down(8)     # Zoom out slightly
-    safe_wait(0.5)
-    
-    # Toggle UI navigation to reset state
-    toggle_ui_navigation()
-    safe_wait(0.2)
-    toggle_ui_navigation()
-    safe_wait(0.2)
     
     # Equip recall wrench
     equip_recall_wrench()
+    safe_wait(0.5)
     
-    print("✅ Initial setup completed.")
+    # Use recall wrench to teleport
+    use_recall_wrench()
+    safe_wait(2.0)
+    
+    # Interact with NPC to enable gear shop
+    press_e()
+    safe_wait(1.0)
+    
+    # There are 3 options, click the first one
+    # We'll use Enter to select the first option
+    press_enter()
+    safe_wait(1.0)
+    
+    return True
+
+def buy_gears(gears_to_buy):
+    """Buy selected gears from gear shop"""
+    print(f"⚙️ Buying gears: {gears_to_buy}")
+    
+    if not gears_to_buy:
+        print("No gears selected to buy")
+        return True
+    
+    # Similar logic to seed buying
+    for gear_name in gears_to_buy:
+        if not macro_running:
+            break
+            
+        print(f"🔍 Looking for {gear_name}")
+        
+        # Navigate through gear shop
+        max_scrolls = 20
+        
+        for scroll_attempt in range(max_scrolls):
+            if not macro_running:
+                break
+                
+            # Try to buy current item
+            press_enter()
+            safe_wait(0.3)
+            
+            # Move down and spam enter
+            navigate_ui_down(1)
+            spam_enter(2)  # Buy 2 of this gear
+            safe_wait(0.5)
+            
+            # Move back up and continue
+            navigate_ui_up(1)
+            safe_wait(0.3)
+            navigate_ui_down(1)
+            safe_wait(0.3)
+            
+            if scroll_attempt >= len(GEAR_ITEMS):
+                break
+        
+        log_purchase("Gears", gear_name)
+        print(f"✅ Purchased {gear_name}")
+    
+    return True
+
+def get_pixel_color(x, y):
+    """Get the color of a pixel at coordinates (x, y)"""
+    try:
+        screenshot = pyautogui.screenshot()
+        color = screenshot.getpixel((x, y))
+        # Convert RGB to hex
+        hex_color = (color[0] << 16) + (color[1] << 8) + color[2]
+        return hex_color
+    except Exception as e:
+        print(f"Error getting pixel color: {e}")
+        return None
+
+def find_egg_by_color(target_eggs):
+    """Find eggs by their color on screen"""
+    print(f"🥚 Looking for eggs by color: {target_eggs}")
+    
+    # Define search area (you may need to adjust these coordinates)
+    search_areas = [
+        (400, 300, 50, 50),  # Egg spot 1
+        (500, 300, 50, 50),  # Egg spot 2
+        (600, 300, 50, 50),  # Egg spot 3
+    ]
+    
+    found_eggs = []
+    
+    for area_index, (x, y, width, height) in enumerate(search_areas):
+        if not macro_running:
+            break
+            
+        print(f"� Checking egg spot {area_index + 1}")
+        
+        # Sample color from center of the area
+        center_x = x + width // 2
+        center_y = y + height // 2
+        
+        pixel_color = get_pixel_color(center_x, center_y)
+        
+        if pixel_color is None:
+            continue
+        
+        # Check if this color matches any of our target eggs
+        for egg_name in target_eggs:
+            if egg_name in EGG_COLOR_MAP:
+                target_color = EGG_COLOR_MAP[egg_name]
+                
+                # Allow some tolerance in color matching
+                color_diff = abs(pixel_color - target_color)
+                if color_diff < 50000:  # Adjust tolerance as needed
+                    found_eggs.append((egg_name, area_index))
+                    print(f"✅ Found {egg_name} at spot {area_index + 1}")
+                    break
+    
+    return found_eggs
+
+def navigate_to_egg_shop():
+    """Navigate to egg shop"""
+    print("🥚 Navigating to egg shop")
+    
+    # Close gear shop first
+    close_shop()
+    safe_wait(0.5)
+    
+    # Move to egg area (adjust movement as needed)
+    safe_press('w', 3)  # Move forward
+    safe_wait(1.0)
+    
+    return True
+
+def buy_eggs(eggs_to_buy):
+    """Buy selected eggs using color recognition"""
+    print(f"🥚 Buying eggs: {eggs_to_buy}")
+    
+    if not eggs_to_buy:
+        print("No eggs selected to buy")
+        return True
+    
+    # Find eggs by color
+    found_eggs = find_egg_by_color(eggs_to_buy)
+    
+    for egg_name, spot_index in found_eggs:
+        if not macro_running:
+            break
+            
+        print(f"� Buying {egg_name} from spot {spot_index + 1}")
+        
+        # Move to the egg spot (adjust movement as needed)
+        if spot_index == 0:
+            safe_press('a', 2)  # Move left
+        elif spot_index == 1:
+            # Already in center
+            pass
+        elif spot_index == 2:
+            safe_press('d', 2)  # Move right
+        
+        safe_wait(0.5)
+        
+        # Interact with egg
+        press_e()
+        safe_wait(0.5)
+        
+        # Buy the egg
+        press_enter()
+        safe_wait(0.5)
+        
+        log_purchase("Eggs", egg_name)
+        print(f"✅ Purchased {egg_name}")
+    
     return True
 
 def run_macro_cycle():
@@ -350,31 +503,45 @@ def run_macro_cycle():
     if (is_shop_ready("Seeds") and 
         selected_items.get("Seeds") and 
         macro_running):
+        print("🌱 Seed shop is ready!")
         navigate_to_seed_shop()
-        buy_from_seed_shop(selected_items["Seeds"])
+        buy_seeds(selected_items["Seeds"])
+        update_shop_timer("Seeds", shop_timers["Seeds"]["total_time"])
     
     # Visit gear shop if ready and items selected
     if (is_shop_ready("Gears") and 
         selected_items.get("Gears") and 
         macro_running):
+        print("⚙️ Gear shop is ready!")
         navigate_to_gear_shop()
-        buy_from_gear_shop(selected_items["Gears"])
+        buy_gears(selected_items["Gears"])
+        update_shop_timer("Gears", shop_timers["Gears"]["total_time"])
     
     # Visit egg shop if ready and items selected
     if (is_shop_ready("Eggs") and 
         selected_items.get("Eggs") and 
         macro_running):
+        print("🥚 Egg shop is ready!")
         navigate_to_egg_shop()
-        buy_from_egg_shop(selected_items["Eggs"])
+        buy_eggs(selected_items["Eggs"])
+        update_shop_timer("Eggs", shop_timers["Eggs"]["total_time"])
     
-    # Visit cosmetic shop if ready and selected
-    if (is_shop_ready("Cosmetics") and 
-        selected_items.get("Cosmetics") and 
-        macro_running):
-        navigate_to_cosmetic_shop()
-        buy_from_cosmetic_shop()
+    print("✅ Macro cycle completed")
+
+def get_next_restock_time():
+    """Get the time until the next shop restocks"""
+    check_shop_timers()
     
-    print("✅ Macro cycle completed.")
+    next_restock = None
+    next_shop = None
+    
+    for shop_name, timer_data in shop_timers.items():
+        if timer_data["time_left"] > 0:
+            if next_restock is None or timer_data["time_left"] < next_restock:
+                next_restock = timer_data["time_left"]
+                next_shop = shop_name
+    
+    return next_shop, next_restock
 
 def timer_update_thread():
     """Thread function to continuously update shop timers"""
@@ -400,9 +567,8 @@ def run_macro(items, webhook):
     print("🚀 Starting Grow a Garden macro...")
     print(f"📝 Selected items: {items}")
     
-    # Initial setup
-    if not setup_initial_position():
-        return
+    # Initial camera setup
+    setup_initial_camera()
     
     # Start timer update thread
     timer_thread = threading.Thread(target=timer_update_thread)
@@ -418,19 +584,25 @@ def run_macro(items, webhook):
     # Main macro loop
     try:
         while macro_running:
-            run_macro_cycle()
+            # Check what's the next shop to restock
+            next_shop, next_restock_time = get_next_restock_time()
             
-            # Wait a bit before next cycle
-            if not safe_wait(10):  # 10 second wait between cycles
-                break
+            if next_restock_time is None:
+                # All shops are ready, run a cycle
+                run_macro_cycle()
+                safe_wait(10)  # Wait 10 seconds between cycles
+            else:
+                # Wait for next restock
+                print(f"⏰ Next restock: {next_shop} in {int(next_restock_time)} seconds")
+                safe_wait(min(60, next_restock_time))  # Check every minute or when ready
                 
     except KeyboardInterrupt:
-        print("⏹ Macro interrupted by user.")
+        print("⏹ Macro interrupted by user")
     except Exception as e:
         print(f"❌ Macro error: {e}")
     finally:
         macro_running = False
-        print("⏹ Macro stopped.")
+        print("⏹ Macro stopped")
 
 def test_webhook_func(webhook_url):
     """Test webhook function (for compatibility with old code)"""
