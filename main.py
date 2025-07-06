@@ -92,14 +92,14 @@ class MainWindow(QWidget):
             }
         """)
 
-        self.init_ui()
-        self.old_pos = None
-        
-        # Store checkbox references for easy access
+        # Store checkbox references for easy access (initialize before UI)
         self.seed_checkboxes = {}
         self.gear_checkboxes = {}
         self.egg_checkboxes = {}
         self.cosmetics_checkbox = None
+        
+        self.init_ui()
+        self.old_pos = None
         
         # Timer thread for shop restock timers
         self.timer_thread = TimerThread()
