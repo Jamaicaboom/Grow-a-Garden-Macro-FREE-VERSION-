@@ -25,6 +25,7 @@ Grow-a-Garden-Macro/
 ├── start_macro.sh         # Linux/macOS quick start script
 ├── test_setup.py          # Setup verification script
 ├── test_macro_simple.py   # Simple dependency test (no GUI needed)
+├── test_fallback_functions.py # Test fallback functions work correctly
 └── Images/
     ├── Close.png          # Custom close button image
     └── Minimize.png       # Custom minimize button image

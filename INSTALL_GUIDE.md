@@ -88,6 +88,12 @@ pip install keyboard
 2. Look for error messages
 3. Install any missing dependencies shown
 
+### Issue: IDE shows "undefined variable" errors
+✅ **FIXED**: `log_purchase` and `send_hourly_report` errors resolved
+- The macro now uses fallback functions when dependencies are missing
+- Your IDE should no longer show undefined variable warnings
+- The macro will work even without webhook functionality
+
 ### Issue: "pip: command not found"
 - **Windows**: Reinstall Python and check "Add to PATH"
 - **Linux**: `sudo apt install python3-pip`
@@ -101,6 +107,7 @@ After installation, you should see:
 - [ ] All tabs (Seeds, Gears, Eggs) load properly
 - [ ] Checkboxes are clickable
 - [ ] Start button changes to "Starting..." when clicked
+- [ ] No Pylance/IDE errors (undefined variable issues fixed)
 
 ## 🆘 Still Having Issues?
 

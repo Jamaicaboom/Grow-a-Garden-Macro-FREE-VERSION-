@@ -6,9 +6,22 @@ from datetime import datetime, timedelta
 pyautogui = None
 keyboard = None
 
+# Define fallback functions for when imports fail
+def log_purchase_fallback(category, item):
+    """Fallback function when webhook module isn't available"""
+    print(f"📝 Would log: {category} - {item} (webhook not available)")
+
+def send_hourly_report_fallback(webhook_url):
+    """Fallback function when webhook module isn't available"""
+    print(f"📧 Would send hourly report (webhook not available)")
+
+# Initialize with fallback functions
+log_purchase = log_purchase_fallback
+send_hourly_report = send_hourly_report_fallback
+
 def check_dependencies():
     """Check and import dependencies"""
-    global pyautogui, keyboard
+    global pyautogui, keyboard, log_purchase, send_hourly_report
     
     try:
         import pyautogui as pg
@@ -27,14 +40,13 @@ def check_dependencies():
         return False
     
     try:
-        from Webhook import log_purchase, send_hourly_report
+        from Webhook import log_purchase as lp, send_hourly_report as shr
+        log_purchase = lp
+        send_hourly_report = shr
         print("✅ Webhook module loaded")
-        # Make these available globally
-        globals()['log_purchase'] = log_purchase
-        globals()['send_hourly_report'] = send_hourly_report
     except ImportError as e:
-        print(f"❌ Webhook import failed: {e}")
-        return False
+        print(f"⚠️ Webhook import failed: {e} (using fallback)")
+        # Keep using fallback functions
     
     return True
 
